@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:collection/collection.dart'; // --- NOVO PACOTE IMPORTADO ---
+import 'package:collection/collection.dart';
 import '../helpers/database_helper.dart';
 import '../helpers/notification_helper.dart';
 import '../models/class_event_model.dart';
@@ -105,13 +105,11 @@ class _AgendaScreenState extends State<AgendaScreen> {
       final message = "Olá, ${student.name}! Lembrete da sua aula de Pilates agendada para o dia $formattedDate às ${event.time}.";
       final Uri whatsappUri = Uri.parse("https://wa.me/${student.phone}?text=${Uri.encodeComponent(message)}");
 
-      // --- CORRIGIDO --- Verificação de segurança para BuildContext
       if (!mounted) return;
       if (!await launchUrl(whatsappUri, mode: LaunchMode.externalApplication)) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Não foi possível abrir o WhatsApp.")));
       }
     } catch (e) {
-      // --- CORRIGIDO --- Verificação de segurança para BuildContext
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Não foi possível encontrar o contato para $studentName.")));
     }
@@ -123,10 +121,8 @@ class _AgendaScreenState extends State<AgendaScreen> {
     ];
     final students = await DatabaseHelper.instance.readAllStudents();
 
-    // --- CORRIGIDO --- Uso de 'firstWhereOrNull' para segurança nula
     final Student? student = students.firstWhereOrNull((s) => s.name.trim() == studentName.trim());
 
-    // --- CORRIGIDO --- Verificação de segurança para BuildContext
     if (!mounted) return;
 
     if (student == null) {
@@ -219,7 +215,6 @@ class _AgendaScreenState extends State<AgendaScreen> {
           if (eventsOfThisMonth.isEmpty)
             pw.Center(child: pw.Text('Nenhuma aula agendada para este mês.'))
           else
-          // --- CORRIGIDO --- 'Table.fromTextArray' obsoleto
             pw.TableHelper.fromTextArray(
               border: pw.TableBorder.all(),
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
@@ -252,16 +247,19 @@ class _AgendaScreenState extends State<AgendaScreen> {
       appBar: AppBar(
         title: const Text('Agenda de Aulas'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add), tooltip: 'Agendar Nova Aula',
-            onPressed: () async {
-              // --- CORRIGIDO --- Verificação de segurança para BuildContext
-              if (!mounted) return;
-              final result = await Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => ScheduleClassScreen(selectedDate: _selectedDay!)),
-              );
-              if (result == true) { _loadAllEvents(); }
-            },
+          // AQUI ESTÁ A CORREÇÃO: ADICIONANDO PADDING
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+              icon: const Icon(Icons.add), tooltip: 'Agendar Nova Aula',
+              onPressed: () async {
+                if (!mounted) return;
+                final result = await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => ScheduleClassScreen(selectedDate: _selectedDay!)),
+                );
+                if (result == true) { _loadAllEvents(); }
+              },
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_outlined),

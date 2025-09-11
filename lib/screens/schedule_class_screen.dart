@@ -1,4 +1,3 @@
-// lib/screens/schedule_class_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../helpers/database_helper.dart';
@@ -23,14 +22,21 @@ class _ScheduleClassScreenState extends State<ScheduleClassScreen> {
   int _selectedInstructorId = 1;
 
   final Map<int, Color> _instructorColors = {
-    1: Colors.purple, 2: Colors.green, 3: Colors.blue.shade900,
-    4: Colors.orange, 5: Colors.pink, 6: Colors.grey.shade300,
-    7: Colors.black87, 8: Colors.yellow.shade700, 9: Colors.lightGreen,
+    1: Colors.purple,
+    2: Colors.green,
+    3: Colors.blue.shade900,
+    4: Colors.orange,
+    5: Colors.pink,
+    6: Colors.grey.shade300,
+    7: Colors.black87,
+    8: Colors.yellow.shade700,
+    9: Colors.lightGreen,
     10: Colors.grey.shade700,
   };
 
   Color getTextColorForBackground(Color backgroundColor) {
-    return ThemeData.estimateBrightnessForColor(backgroundColor) == Brightness.dark
+    return ThemeData.estimateBrightnessForColor(backgroundColor) ==
+            Brightness.dark
         ? Colors.white
         : Colors.black;
   }
@@ -66,7 +72,8 @@ class _ScheduleClassScreenState extends State<ScheduleClassScreen> {
   }
 
   Future<void> _pickTime() async {
-    final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    final time =
+        await showTimePicker(context: context, initialTime: TimeOfDay.now());
     if (time != null) {
       setState(() => _selectedTime = time);
     }
@@ -75,7 +82,9 @@ class _ScheduleClassScreenState extends State<ScheduleClassScreen> {
   Future<void> _saveClass() async {
     if (_selectedTime == null || _selectedStudents.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, selecione um horário e pelo menos um aluno.')),
+        const SnackBar(
+            content:
+                Text('Por favor, selecione um horário e pelo menos um aluno.')),
       );
       return;
     }
@@ -88,7 +97,8 @@ class _ScheduleClassScreenState extends State<ScheduleClassScreen> {
       instructorId: _selectedInstructorId,
     );
 
-    final savedEvent = await DatabaseHelper.instance.createClassEvent(newEventData);
+    final savedEvent =
+        await DatabaseHelper.instance.createClassEvent(newEventData);
     await NotificationHelper().scheduleNotificationForClass(savedEvent);
 
     if (mounted) Navigator.of(context).pop(true);
@@ -100,7 +110,8 @@ class _ScheduleClassScreenState extends State<ScheduleClassScreen> {
       children: [
         const Padding(
           padding: EdgeInsets.only(left: 16.0, top: 16, bottom: 8),
-          child: Text('Selecione o Instrutor(a)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          child: Text('Selecione o Instrutor(a)',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -125,13 +136,17 @@ class _ScheduleClassScreenState extends State<ScheduleClassScreen> {
                   }
                 },
                 selectedColor: color,
-                backgroundColor: color.withAlpha(64), // Correção de 'withOpacity'
+                backgroundColor: color.withAlpha(64),
                 labelStyle: TextStyle(
                   color: isSelected ? textColor : color,
                   fontWeight: FontWeight.bold,
                 ),
-                avatar: isSelected ? Icon(Icons.check, color: textColor, size: 16) : null,
-                side: isSelected ? BorderSide.none : BorderSide(color: color.withAlpha(153)), // Correção de 'withOpacity'
+                avatar: isSelected
+                    ? Icon(Icons.check, color: textColor, size: 16)
+                    : null,
+                side: isSelected
+                    ? BorderSide.none
+                    : BorderSide(color: color.withAlpha(153)),
               );
             }),
           ),
@@ -144,12 +159,23 @@ class _ScheduleClassScreenState extends State<ScheduleClassScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Agendar Aula para ${DateFormat('dd/MM/yyyy').format(widget.selectedDate)}'),
+        title: Text(
+            'Agendar para ${DateFormat('dd/MM/yyyy').format(widget.selectedDate)}'),
+        // --- BOTÃO CORRIGIDO PARA UM ÍCONE VISÍVEL ---
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            tooltip: 'Salvar Aula',
+            onPressed: _saveClass,
+          ),
+        ],
       ),
       body: Column(
         children: [
           ListTile(
-            title: Text(_selectedTime == null ? 'Selecionar Horário' : 'Horário: ${_selectedTime!.format(context)}'),
+            title: Text(_selectedTime == null
+                ? 'Selecionar Horário'
+                : 'Horário: ${_selectedTime!.format(context)}'),
             trailing: const Icon(Icons.access_time),
             onTap: _pickTime,
           ),
@@ -173,29 +199,25 @@ class _ScheduleClassScreenState extends State<ScheduleClassScreen> {
             child: _filteredStudents.isEmpty
                 ? const Center(child: Text('Nenhum aluno encontrado.'))
                 : ListView.builder(
-              itemCount: _filteredStudents.length,
-              itemBuilder: (context, index) {
-                final student = _filteredStudents[index];
-                final isSelected = _selectedStudents.contains(student);
-                return CheckboxListTile(
-                  title: Text(student.name),
-                  value: isSelected,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value == true) {
-                        _selectedStudents.add(student);
-                      } else {
-                        _selectedStudents.remove(student);
-                      }
-                    });
-                  },
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(onPressed: _saveClass, child: const Text('Salvar Aula')),
+                    itemCount: _filteredStudents.length,
+                    itemBuilder: (context, index) {
+                      final student = _filteredStudents[index];
+                      final isSelected = _selectedStudents.contains(student);
+                      return CheckboxListTile(
+                        title: Text(student.name),
+                        value: isSelected,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            if (value == true) {
+                              _selectedStudents.add(student);
+                            } else {
+                              _selectedStudents.remove(student);
+                            }
+                          });
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),

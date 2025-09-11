@@ -68,16 +68,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 TextFormField(
                   controller: _emailController,
                   decoration: const InputDecoration(
-                    labelText: 'Seu E-mail',
+                    labelText: 'Seu E-mail (Opcional)', // Alterado para indicar que é opcional
                     prefixIcon: Icon(Icons.email_outlined),
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.emailAddress,
+                  // ▼▼▼ MUDANÇA AQUI ▼▼▼
                   validator: (value) {
-                    if (value == null || !value.contains('@')) {
+                    // Permite que o campo seja vazio.
+                    // Mas se algo for digitado, deve ser um e-mail válido.
+                    if (value != null && value.isNotEmpty && !value.contains('@')) {
                       return 'Por favor, insira um e-mail válido.';
                     }
-                    return null;
+                    return null; // Válido se estiver vazio ou se contiver '@'
                   },
                 ),
                 const SizedBox(height: 16),

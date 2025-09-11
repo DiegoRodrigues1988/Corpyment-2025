@@ -24,6 +24,7 @@ dependencies:
   timezone: ^0.9.4
   pdf: ^3.10.8
   printing: ^5.11.1
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:
@@ -50,3 +51,4 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/icon.png"
+

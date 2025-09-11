@@ -1,5 +1,3 @@
-// lib/helpers/database_helper.dart
-
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/class_event_model.dart';
@@ -19,11 +17,13 @@ class DatabaseHelper {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    // ATUALIZE A VERSÃO PARA 6
-    return await openDatabase(path, version: 6, onCreate: _createDB, onUpgrade: _upgradeDB);
+    // ATUALIZE A VERSÃO PARA 7
+    return await openDatabase(path,
+        version: 7, onCreate: _createDB, onUpgrade: _upgradeDB);
   }
 
   Future _createDB(Database db, int version) async {
+    await _createUsersTable(db);
     await _createStudentsTable(db);
     await _createClassEventsTable(db);
   }
@@ -37,15 +37,31 @@ class DatabaseHelper {
       await _createClassEventsTable(db);
     }
     if (oldVersion < 4) {
-      await db.execute('ALTER TABLE students ADD COLUMN workoutStep INTEGER NOT NULL DEFAULT 1');
+      await db.execute(
+          'ALTER TABLE students ADD COLUMN workoutStep INTEGER NOT NULL DEFAULT 1');
     }
     if (oldVersion < 5) {
-      await db.execute('ALTER TABLE class_events ADD COLUMN instructorId INTEGER NOT NULL DEFAULT 1');
+      await db.execute(
+          'ALTER TABLE class_events ADD COLUMN instructorId INTEGER NOT NULL DEFAULT 1');
+    }
+    if (oldVersion < 6) {
+      await db.execute(
+          'ALTER TABLE class_events ADD COLUMN isConcluded INTEGER NOT NULL DEFAULT 0');
     }
     // --- NOVA LÓGICA DE MIGRAÇÃO ---
-    if (oldVersion < 6) {
-      await db.execute('ALTER TABLE class_events ADD COLUMN isConcluded INTEGER NOT NULL DEFAULT 0');
+    if (oldVersion < 7) {
+      await _createUsersTable(db);
     }
+  }
+
+  Future<void> _createUsersTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL
+      )
+    ''');
   }
 
   Future<void> _createStudentsTable(Database db) async {
@@ -80,7 +96,19 @@ class DatabaseHelper {
     ''');
   }
 
-  // --- MÉTODOS PARA ALUNOS (sem alterações) ---
+  // --- MÉTODOS PARA USUÁRIO ---
+  Future<void> createUser(String email, String password) async {
+    final db = await instance.database;
+    await db.insert('users', {'email': email, 'password': password});
+  }
+
+  Future<Map<String, dynamic>?> getUser() async {
+    final db = await instance.database;
+    final result = await db.query('users', limit: 1);
+    return result.isNotEmpty ? result.first : null;
+  }
+
+  // --- MÉTODOS PARA ALUNOS ---
   Future<Student> create(Student student) async {
     final db = await instance.database;
     final id = await db.insert('students', student.toMap());
@@ -102,7 +130,8 @@ class DatabaseHelper {
 
   Future<int> update(Student student) async {
     final db = await instance.database;
-    return db.update('students', student.toMap(), where: 'id = ?', whereArgs: [student.id]);
+    return db.update('students', student.toMap(),
+        where: 'id = ?', whereArgs: [student.id]);
   }
 
   Future<int> delete(int id) async {
@@ -117,10 +146,10 @@ class DatabaseHelper {
     return event.copyWith(id: id);
   }
 
-  // --- NOVO MÉTODO PARA ATUALIZAR UMA AULA ---
   Future<int> updateClassEvent(ClassEvent event) async {
     final db = await instance.database;
-    return db.update('class_events', event.toMap(), where: 'id = ?', whereArgs: [event.id]);
+    return db.update('class_events', event.toMap(),
+        where: 'id = ?', whereArgs: [event.id]);
   }
 
   Future<List<ClassEvent>> readAllEvents() async {
